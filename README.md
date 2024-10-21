@@ -21,4 +21,4 @@ To get this working, you'll have to pay attention to how the model is loaded (an
 of asycn loading if required) and the return format of the model, as the format
 is different from the cloud version.
 
-
+<img src='output.png' width=300>
