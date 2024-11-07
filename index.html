@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    #results {
+      position: fixed;
+      top: 50px;
+      left: 10px;
+      color: blue;
+    }
+
+    #results span {
+      margin: 5px 5px;
+    }
+
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    h1 {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+
+    button {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+</head>
+
+<body>
+  <video autoplay="true" id="videoElement"></video>
+  <button id="vision_button">Analyze</button>
+  <div id='results'></div>
+
+  <script>
+    // Access camera
+    var video = document.querySelector("#videoElement");
+    if (navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+          video.srcObject = stream;
+        })
+        .catch(function (err) {
+          console.log("Something went wrong!");
+        });
+    }
+
+    // Load the COCO-SSD model
+    let modelPromise = cocoSsd.load();
+
+    document.querySelector("#vision_button").addEventListener('click', async (evt) => {
+      // Load the model
+      const model = await modelPromise;
+
+      // Create a canvas
+      var scale = 0.5;
+      var canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth * scale;
+      canvas.height = video.videoHeight * scale;
+      var context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Perform object detection on the captured frame
+      const predictions = await model.detect(canvas);
+
+      // Display results
+      let results = document.querySelector('#results');
+      results.innerHTML = ''; // Clear previous results
+      predictions.forEach(prediction => {
+        let div = document.createElement('div');
+        let description = document.createElement('span');
+        let score = document.createElement('span');
+
+        description.innerText = `Object: ${prediction.class}`;
+        score.innerText = `Confidence: ${(prediction.score * 100).toFixed(2)}%`;
+
+        div.append(description, score);
+        results.append(div);
+      });
+    });
+  </script>
+</body>
+
+</html>
